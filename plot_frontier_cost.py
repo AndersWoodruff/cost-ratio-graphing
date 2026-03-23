@@ -7,7 +7,6 @@ Y-axis: median AI-cost / human-cost for successful attempts within ±0.1 OOM
         of that frontier
 
 Each point is one model, coloured by release date.
-Tasks shorter than 1 min 30 s are excluded.
 """
 
 import matplotlib
@@ -26,7 +25,7 @@ from _alt_common import (
 
 # ── load data ──────────────────────────────────────────────────────────
 
-df, release_dates, _, headline, _ = load_data()
+_, release_dates, _, headline, df = load_data()
 MODELS = df["alias"].unique().tolist()
 model_release, sorted_models = build_model_release(MODELS, release_dates)
 
