@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore")
 from _alt_common import load_data
 
 # ── data loading ──────────────────────────────────────────────────────
-df, _, _, _, _ = load_data()
+_, _, _, _, df = load_data()
 
 out_dir = "."
 
