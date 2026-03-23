@@ -25,7 +25,7 @@ OUT_DIR = "."
 
 # ── load data ──────────────────────────────────────────────────────────
 
-df, release_dates, _, headline, _ = load_data()
+_, release_dates, _, headline, df = load_data()
 MODELS = df["alias"].unique().tolist()
 model_release, sorted_models = build_model_release(MODELS, release_dates)
 
