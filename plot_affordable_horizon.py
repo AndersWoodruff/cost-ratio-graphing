@@ -199,7 +199,7 @@ def plot_horizon_grid(all_results, suptitle, out_path, release_dates, pct_label)
                 row["release_date"], row["time_horizon_minutes"],
                 color=get_color(row["alias"]),
                 marker=alias_marker.get(row["alias"], "o"),
-                s=100, zorder=5, edgecolors="white", linewidths=0.5,
+                s=140, zorder=5, edgecolors="white", linewidths=0.5,
                 label=row["alias"].replace(" (Inspect)", ""),
             )
 
@@ -223,29 +223,29 @@ def plot_horizon_grid(all_results, suptitle, out_path, release_dates, pct_label)
             ax.annotate(
                 f"Doubling: {doubling / 30.44:.1f} months\nR\u00b2={r2:.2f}",
                 xy=(0.02, 0.98), xycoords="axes fraction",
-                ha="left", va="top", fontsize=10, color="blue",
+                ha="left", va="top", fontsize=14, color="blue",
             )
 
         ax.set_yscale("log")
         ax.set_yticks(Y_TICKS)
-        ax.set_yticklabels(Y_LABELS)
+        ax.set_yticklabels(Y_LABELS, fontsize=13)
         ax.yaxis.set_minor_formatter(mticker.NullFormatter())
         ax.set_ylim(0.1, 1500)
         ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=[1, 4, 7, 10]))
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
-        plt.setp(ax.get_xticklabels(), rotation=30, ha="right")
-        ax.set_xlabel("Model Release Date")
-        ax.set_ylabel(f"{pct_label} Time Horizon")
+        plt.setp(ax.get_xticklabels(), rotation=30, ha="right", fontsize=12)
+        ax.set_xlabel("Model Release Date", fontsize=14)
+        ax.set_ylabel(f"{pct_label} Time Horizon", fontsize=14)
         if "unlimited" in thresh_label.lower():
-            ax.set_title(f"{pct_label} Time Horizon with Unlimited Cost", fontsize=13)
+            ax.set_title(f"{pct_label} Time Horizon with Unlimited Cost", fontsize=16)
         else:
-            ax.set_title(f"{pct_label} Affordable Time Horizon: {thresh_label}", fontsize=13)
-        ax.legend(fontsize=7, loc="lower right")
+            ax.set_title(f"{pct_label} Affordable Time Horizon: {thresh_label}", fontsize=16)
+        ax.legend(fontsize=9, loc="lower right")
 
     for idx in range(n_panels, len(axes_flat)):
         axes_flat[idx].set_visible(False)
 
-    fig.suptitle(suptitle, fontsize=15, fontweight="bold")
+    fig.suptitle(suptitle, fontsize=20, fontweight="bold")
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
