@@ -17,9 +17,26 @@ import matplotlib.ticker as mticker
 import matplotlib.cm as mcm
 import matplotlib.colors as mcolors
 from _alt_common import (
-    load_data, build_model_release, weighted_median_ci,
+    load_data, build_model_release,
     TIME_X_TICKS, TIME_X_LABELS, COST_Y_TICKS, COST_Y_LABELS,
 )
+
+
+def weighted_percentile(values, weights, q):
+    """Return the weighted q-th percentile (q in 0–1)."""
+    sort_idx = np.argsort(values)
+    sv, sw = values[sort_idx], weights[sort_idx]
+    sw = sw / sw.sum()
+    cum = np.cumsum(sw)
+    return sv[np.searchsorted(cum, q)]
+
+
+def weighted_median_iqr(values, weights):
+    """Weighted median with IQR (25th–75th percentile)."""
+    median = weighted_percentile(values, weights, 0.50)
+    q25 = weighted_percentile(values, weights, 0.25)
+    q75 = weighted_percentile(values, weights, 0.75)
+    return median, q25, q75
 
 OUT_DIR = "."
 
@@ -84,7 +101,7 @@ for pct in PERCENTILES:
 
         ratios = frontier_successes["cost_ratio"].values
         weights = frontier_successes["invsqrt_task_weight"].values
-        median_cost_ratio, ci_lo, ci_hi = weighted_median_ci(ratios, weights)
+        median_cost_ratio, q25, q75 = weighted_median_iqr(ratios, weights)
 
         short = alias.replace(" (Inspect)", "").strip()
         results.append({
@@ -92,14 +109,14 @@ for pct in PERCENTILES:
             "short": short,
             "pXX_minutes": pXX_minutes,
             "median_cost_ratio": median_cost_ratio,
-            "ci_lo": ci_lo,
-            "ci_hi": ci_hi,
+            "q25": q25,
+            "q75": q75,
             "release_date": model_release[alias],
             "n_frontier": len(frontier_successes),
         })
         print(f"  {short:30s}  {pct}={pXX_minutes:8.1f} min  "
               f"cost_ratio={median_cost_ratio:.4f}  "
-              f"90% CI=[{ci_lo:.4f}, {ci_hi:.4f}]  "
+              f"IQR=[{q25:.4f}, {q75:.4f}]  "
               f"({len(frontier_successes)} frontier successes)")
 
     if not results:
@@ -116,17 +133,17 @@ for pct in PERCENTILES:
     norm = mcolors.Normalize(vmin=date_nums.min(), vmax=date_nums.max())
     cmap = mcm.plasma
 
-    # Error bars
+    # Error bars (IQR: 25th–75th percentile)
     for _, row in rdf.iterrows():
         color = cmap(norm(row["release_date"].toordinal()))
         ax.plot(
             [row["pXX_minutes"], row["pXX_minutes"]],
-            [row["ci_lo"], row["ci_hi"]],
+            [row["q25"], row["q75"]],
             color=color, linewidth=2, alpha=0.5, zorder=4,
             solid_capstyle="round",
         )
         cap_w = 0.04
-        for yval in [row["ci_lo"], row["ci_hi"]]:
+        for yval in [row["q25"], row["q75"]]:
             ax.plot(
                 [row["pXX_minutes"] * 10**(-cap_w), row["pXX_minutes"] * 10**cap_w],
                 [yval, yval],
@@ -185,9 +202,9 @@ for pct in PERCENTILES:
 
     # Legend
     handles, labels = ax.get_legend_handles_labels()
-    ci_handle = plt.Line2D([0], [0], color="gray", linewidth=2, alpha=0.5)
-    handles.append(ci_handle)
-    labels.append("90% bootstrap CI\non median cost ratio")
+    iqr_handle = plt.Line2D([0], [0], color="gray", linewidth=2, alpha=0.5)
+    handles.append(iqr_handle)
+    labels.append("IQR (25th\u201375th percentile)")
     ax.legend(handles, labels, loc="upper right", fontsize=10)
 
     # Grid at every tick
